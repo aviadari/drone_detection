@@ -23,7 +23,7 @@ import numpy as np
 from ultralytics import YOLOv10
 
 # Load the YOLOv8 model
-model = YOLOv10("ir_s_5.pt")
+model = YOLOv10("ir_x_1.pt")
 model.to('cuda')
 
 # Open the video file
@@ -65,13 +65,14 @@ while cap.isOpened():
             for box, track_id in zip(boxes, track_ids):
                 x, y, w, h = box
                 track = track_history[track_id]
-                track.append((float(x), float(y)))  # x, y center point
+                track.append((float(x+w)/2, float(y+h)/2))  # x, y center point
                 if len(track) > 60:  # retain 90 tracks for 90 frames
                     track.pop(0)
 
                 # Draw the tracking lines
                 points = np.hstack(track).astype(np.int32).reshape((-1, 1, 2))
-                cv2.polylines(annotated_frame, [points], isClosed=False, color=(0, 255, 0), thickness=1)
+                cv2.polylines(annotated_frame, [points], isClosed=False, color=(0, 255, 0), thickness=2)
+                cv2.circle(annotated_frame, (int(track[-1][0]), int(track[-1][1])), 2, color=(255, 0, 0), thickness=-1)
 
             # Display the annotated frame
             cv2.imshow("YOLOv10 Tracking", annotated_frame)
